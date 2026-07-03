@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Name Wheel Randomizer</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --success: #22c55e;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #0f172a;
+            --border: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            padding: 3rem 1.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 3rem;
+            max-width: 1100px;
+            width: 100%;
+            background: var(--card-bg);
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08);
+        }
+
+        @media (min-width: 902px) {
+            .container {
+                grid-template-columns: 1.2fr 1fr;
+                align-items: center;
+            }
+        }
+
+        .wheel-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 420px;
+            height: 420px;
+        }
+
+        #wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+        }
+
+        .pointer {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 30px solid var(--danger);
+            z-index: 10;
+            filter: drop-shadow(0 3px 6px rgba(0,0,0,0.25));
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            font-size: 1.05rem;
+            line-height: 1.5;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 1rem 1.25rem;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 1.15rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+        }
+
+        button {
+            padding: 1rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1.1rem;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        
+        .btn-spin { 
+            width: 100%; 
+            margin-top: 2rem; 
+            padding: 1.25rem; 
+            font-size: 1.4rem; 
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-share { 
+            background: #f1f5f9; 
+            color: #475569; 
+            border: 2px solid var(--border);
+            padding: 1rem;
+            font-size: 1.1rem;
+        }
+        .btn-share:hover { background: #e2e8f0; }
+
+        .name-list-container {
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+
+        .name-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.85rem 1.25rem;
+            border-bottom: 2px solid var(--border);
+            font-size: 1.15rem;
+        }
+
+        .name-item:last-child { border-bottom: none; }
+        
+        .remove-btn { 
+            background: transparent; 
+            color: var(--danger); 
+            padding: 0.4rem 0.75rem; 
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+        .remove-btn:hover { color: var(--danger-hover); background: #ffeeef; }
+
+        /* Modal Details */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(6px);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            padding: 3rem 2.5rem;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 480px;
+            width: 90%;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal h2 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .winner-name { font-size: 2.8rem; font-weight: 800; color: var(--primary); margin: 1.5rem 0; word-break: break-word; }
+        .modal-buttons { display: flex; flex-direction: column; gap: 1rem; margin-top: 2rem; }
+        
+        .btn-success { background: var(--success); color: white; padding: 1.1rem; font-size: 1.15rem; }
+        .btn-success:hover { opacity: 0.95; }
+        
+        .btn-danger-fill { background: var(--danger); color: white; padding: 1.1rem; font-size: 1.15rem; }
+        .btn-danger-fill:hover { background: var(--danger-hover); }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Left Side: Visual Wheel Graph -->
+        <div class="wheel-section">
+            <div class="wheel-container">
+                <div class="pointer"></div>
+                <!-- Rendered resolution is higher for clean sharpness on scaled layouts -->
+                <canvas id="wheel" width="800" height="800"></canvas>
+            </div>
+            <button class="btn-primary btn-spin" id="spinBtn" onclick="spinWheel()">SPIN THE WHEEL</button>
+        </div>
+
+        <!-- Right Side: Config Controls -->
+        <div class="controls">
+            <div>
+                <h2>Wheel App Configuration</h2>
+                <p style="color: #64748b;">Manage options below. Click the Shareable URL trigger button below to freeze your configuration for linking.</p>
+            </div>
+
+            <div class="input-group">
+                <input type="text" id="nameInput" placeholder="Enter a option/name..." onkeydown="if(event.key==='Enter') addName()">
+                <button class="btn-primary" onclick="addName()">Add</button>
+            </div>
+
+            <div class="name-list-container" id="nameList">
+                <!-- Injected elements -->
+            </div>
+
+            <button class="btn-share" onclick="copyShareableUrl()">🔗 Copy Shareable URL (Query Params)</button>
+        </div>
+    </div>
+
+    <!-- Results Prompt Display -->
+    <div class="modal" id="resultModal">
+        <div class="modal-content">
+            <h2>🎉 Selected Choice!</h2>
+            <div class="winner-name" id="winnerDisplay">Placeholder</div>
+            <div class="modal-buttons">
+                <button class="btn-success" onclick="closeModal()">Keep Name & Start Again</button>
+                <button class="btn-danger-fill" onclick="removeWinnerAndClose()">Remove Name & Start Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let names = [];
+        let currentRotation = 0;
+        let isSpinning = false;
+        let lastWinnerIndex = null;
+
+        const canvas = document.getElementById('wheel');
+        const ctx = canvas.getContext('2d');
+        const colors = ['#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#6366f1'];
+
+        window.onload = function() {
+            const params = new URLSearchParams(window.location.search);
+            const queryNames = params.get('names');
+            
+            if (queryNames) {
+                names = queryNames.split(',').map(n => n.trim()).filter(n => n);
+            } else {
+                const localNames = localStorage.getItem('app_names');
+                if (localNames) {
+                    names = JSON.parse(localNames);
+                } else {
+                    names = ['Alice', 'Bob', 'Charlie', 'Diana', 'Ethan'];
+                }
+            }
+            updateUI();
+        };
+
+        function saveToLocalStorage() {
+            localStorage.setItem('app_names', JSON.stringify(names));
+        }
+
+        function drawWheel() {
+            const numSegments = names.length;
+            const center = canvas.width / 2;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (numSegments === 0) {
+                ctx.fillStyle = '#cbd5e1';
+                ctx.beginPath();
+                ctx.arc(center, center, center - 15, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.fillStyle = '#64748b';
+                ctx.font = 'bold 36px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Add names to populate wheel', center, center);
+                return;
+            }
+
+            const anglePerSegment = (2 * Math.PI) / numSegments;
+
+            names.forEach((name, i) => {
+                const startAngle = i * anglePerSegment + currentRotation;
+                const endAngle = startAngle + anglePerSegment;
+
+                ctx.beginPath();
+                ctx.moveTo(center, center);
+                ctx.arc(center, center, center - 15, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fillStyle = colors[i % colors.length];
+                ctx.fill();
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = '#ffffff';
+                ctx.stroke();
+
+                ctx.save();
+                ctx.translate(center, center);
+                ctx.rotate(startAngle + anglePerSegment / 2);
+                ctx.textAlign = 'right';
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 32px sans-serif';
+                
+                let renderName = name.length > 14 ? name.substring(0, 12) + '...' : name;
+                ctx.fillText(renderName, center - 60, 12);
+                ctx.restore();
+            });
+
+            ctx.beginPath();
+            ctx.arc(center, center, 35, 0, 2 * Math.PI);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.stroke();
+        }
+
+        function addName() {
+            const input = document.getElementById('nameInput');
+            const value = input.value.trim();
+            if (value) {
+                names.push(value);
+                input.value = '';
+                saveToLocalStorage();
+                updateUI();
+            }
+        }
+
+        function removeName(index) {
+            names.splice(index, 1);
+            saveToLocalStorage();
+            updateUI();
+        }
+
+        function updateUI() {
+            const listContainer = document.getElementById('nameList');
+            listContainer.innerHTML = '';
+            
+            names.forEach((name, index) => {
+                const item = document.createElement('div');
+                item.className = 'name-item';
+                item.innerHTML = `
+                    <span>${name}</span>
+                    <button class="remove-btn" onclick="removeName(${index})">Remove</button>
+                `;
+                listContainer.appendChild(item);
+            });
+
+            document.getElementById('spinBtn').disabled = names.length === 0;
+            drawWheel();
+        }
+
+        function spinWheel() {
+            if (isSpinning || names.length === 0) return;
+            isSpinning = true;
+
+            const numSegments = names.length;
+            const extraSpins = 6 + Math.floor(Math.random() * 4); 
+            const randomTargetAngle = Math.random() * (2 * Math.PI);
+            const totalRotationTarget = (extraSpins * 2 * Math.PI) + randomTargetAngle;
+            
+            let start = null;
+            const duration = 4500; 
+            const initialRotation = currentRotation;
+
+            function animate(timestamp) {
+                if (!start) start = timestamp;
+                const elapsed = timestamp - start;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                const easeOut = 1 - Math.pow(1 - progress, 4);
+                
+                currentRotation = initialRotation + (totalRotationTarget * easeOut);
+                drawWheel();
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    isSpinning = false;
+                    
+                    const normalizedRotation = (currentRotation % (2 * Math.PI));
+                    const pointerAngleOffset = (2.5 * Math.PI - normalizedRotation) % (2 * Math.PI);
+                    const anglePerSegment = (2 * Math.PI) / numSegments;
+                    
+                    lastWinnerIndex = Math.floor(pointerAngleOffset / anglePerSegment) % numSegments;
+                    
+                    document.getElementById('winnerDisplay').innerText = names[lastWinnerIndex];
+                    document.getElementById('resultModal').style.display = 'flex';
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+
+        function closeModal() {
+            document.getElementById('resultModal').style.display = 'none';
+        }
+
+        function removeWinnerAndClose() {
+            if (lastWinnerIndex !== null) {
+                removeName(lastWinnerIndex);
+                lastWinnerIndex = null;
+            }
+            closeModal();
+        }
+
+        function copyShareableUrl() {
+            const baseUrl = window.location.origin + window.location.pathname;
+            const params = new URLSearchParams();
+            if (names.length > 0) {
+                params.set('names', names.join(','));
+            }
+            const finalUrl = `${baseUrl}?${params.toString()}`;
+
+            navigator.clipboard.writeText(finalUrl).then(() => {
+                alert('Shareable URL copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy link: ', err);
+            });
+        }
+    </script>
+</body>
+</html>
