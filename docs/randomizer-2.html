@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lottery Wheel Randomizer</title>
+    <title>Wheel Randomizer</title>
     <style>
         :root {
             --primary: #6366f1;
@@ -193,7 +193,7 @@
         <!-- Right Side: Controls & List Management -->
         <div class="controls">
             <div>
-                <h2 style="margin-bottom: 0.5rem;">Lottery Setup</h2>
+                <h2 style="margin-bottom: 0.5rem;">Setup</h2>
                 <p style="color: #64748b; font-size: 0.9rem;">Add names below. Generate a URL to lock in your active list across page refreshes.</p>
             </div>
 
@@ -242,7 +242,7 @@
                 names = queryNames.split(',').map(n => n.trim()).filter(n => n);
             } else {
                 // 2. Fallback to LocalStorage
-                const localNames = localStorage.getItem('lottery_names');
+                const localNames = localStorage.getItem('names');
                 if (localNames) {
                     names = JSON.parse(localNames);
                 } else {
@@ -255,7 +255,7 @@
         };
 
         function saveToLocalStorage() {
-            localStorage.setItem('lottery_names', JSON.stringify(names));
+            localStorage.setItem('names', JSON.stringify(names));
         }
 
         function drawWheel() {
