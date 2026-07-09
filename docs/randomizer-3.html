@@ -408,7 +408,7 @@
                     isSpinning = false;
                     
                     const normalizedRotation = (currentRotation % (2 * Math.PI));
-                    const pointerAngleOffset = (2.5 * Math.PI - normalizedRotation) % (2 * Math.PI);
+                    const pointerAngleOffset = (3.5 * Math.PI - normalizedRotation) % (2 * Math.PI);
                     const anglePerSegment = (2 * Math.PI) / numSegments;
                     
                     lastWinnerIndex = Math.floor(pointerAngleOffset / anglePerSegment) % numSegments;
